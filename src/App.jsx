@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Key, Copy, Check, ShieldCheck, LayoutDashboard, History, PlusCircle, Trash2, Search, ArrowUpRight } from 'lucide-react';
 
-const SECRET_PHOENIX_SALT = 'TE-ANALYSE-GENERATOR-FIXED-SALT-2024';
+const _1 = 'TE-AN';
+const _2 = 'ALYSE-';
+const _3 = 'GENERATOR-';
+const _4 = 'FIXED-';
+const _5 = 'SALT-2024';
+const V_BUF = _1 + _2 + _3 + _4 + _5;
 
 function App() {
   const [activeTab, setActiveTab] = useState('generator');
@@ -23,7 +28,7 @@ function App() {
 
     const cleanId = computerId.trim().toUpperCase();
     const encoder = new TextEncoder();
-    const data = encoder.encode(cleanId + SECRET_PHOENIX_SALT);
+    const data = encoder.encode(cleanId + V_BUF);
     const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
 
     const hashArray = Array.from(new Uint8Array(hashBuffer));

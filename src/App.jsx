@@ -11,15 +11,63 @@ function App() {
   const [selectedProduct, setSelectedProduct] = useState('AG');
   const [result, setResult] = useState('');
   const [copied, setCopied] = useState(false);
-  const [history, setHistory] = useState(() => {
-    const savedHistory = localStorage.getItem('te_keygen_history');
-    return savedHistory ? JSON.parse(savedHistory) : [];
-  });
+  const [history, setHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
+  const updateCloud = async (newHistory) => {
+    try {
+      await fetch('/api/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newHistory)
+      });
+    } catch(e) {
+      console.error('Failed to sync with KV cloud', e);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem('te_keygen_history', JSON.stringify(history));
-  }, [history]);
+    let isMounted = true;
+    const initHistory = async () => {
+      try {
+        const res = await fetch('/api/history');
+        let cloudHistory = [];
+        if (res.ok) {
+          cloudHistory = await res.json();
+        }
+
+        const localData = localStorage.getItem('te_keygen_history');
+        if (localData) {
+          const parsedLocal = JSON.parse(localData);
+          if (parsedLocal.length > 0) {
+            const merged = [...parsedLocal, ...cloudHistory];
+            const uniqueMap = new Map();
+            merged.forEach(item => uniqueMap.set(item.computerId, item));
+            const finalMerged = Array.from(uniqueMap.values()).sort((a,b) => b.id - a.id);
+            
+            if (isMounted) setHistory(finalMerged.slice(0, 150));
+            await updateCloud(finalMerged.slice(0, 150));
+            
+            localStorage.removeItem('te_keygen_history');
+            
+            if (isMounted) setIsLoading(false);
+            return;
+          }
+        }
+
+        if (isMounted) {
+          setHistory(cloudHistory);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error('KV Fetch Error:', err);
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    initHistory();
+    return () => { isMounted = false; };
+  }, []);
 
   const generateKey = async () => {
     if (!computerId.trim()) return;
@@ -51,7 +99,9 @@ function App() {
     };
 
     // Avoid duplicates in history
-    setHistory(prev => [newEntry, ...prev.filter(h => h.computerId !== cleanId)].slice(0, 50));
+    const newArr = [newEntry, ...history.filter(h => h.computerId !== cleanId)].slice(0, 150);
+    setHistory(newArr);
+    updateCloud(newArr);
   };
 
   const copyToClipboard = (text) => {
@@ -61,7 +111,9 @@ function App() {
   };
 
   const deleteEntry = (id) => {
-    setHistory(prev => prev.filter(entry => entry.id !== id));
+    const newArr = history.filter(entry => entry.id !== id);
+    setHistory(newArr);
+    updateCloud(newArr);
   };
 
   const filteredHistory = history.filter(h =>
@@ -171,7 +223,11 @@ function App() {
             </div>
 
             <div className="history-list">
-              {filteredHistory.length > 0 ? (
+              {isLoading ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                  Lade Cloud-Historie...
+                </div>
+              ) : filteredHistory.length > 0 ? (
                 filteredHistory.map(entry => (
                   <div key={entry.id} className="history-item">
                     <div className="history-main">

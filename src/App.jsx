@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Key, Copy, Check, ShieldCheck, LayoutDashboard, History, PlusCircle, Trash2, Search, ArrowUpRight } from 'lucide-react';
+import { Key, Copy, Check, ShieldCheck, LayoutDashboard, History, PlusCircle, Trash2, Search, ArrowUpRight, Download } from 'lucide-react';
 
 const SALT_AG = 'TE-ANALYSE-GENERATOR-FIXED-SALT-2024';
 const SALT_AVS = 'TE-ANALYSE-VIRTUAL-FIXED-SALT-2024';

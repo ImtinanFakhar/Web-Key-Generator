@@ -104,6 +104,16 @@ function App() {
     updateCloud(newArr);
   };
 
+  const downloadHistory = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `te_keygen_backup_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -204,10 +214,11 @@ function App() {
                 <div className="stat-label">Gesamt</div>
                 <div className="stat-value">{history.length}</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-label">Heute</div>
-                <div className="stat-value">
-                  {history.filter(h => h.date.split(',')[0] === new Date().toLocaleDateString('de-DE')).length}
+              <div className="stat-card" onClick={downloadHistory} style={{ cursor: 'pointer', border: '2px solid var(--accent-color)', background: 'rgba(88, 166, 255, 0.05)' }}>
+                <div className="stat-label" style={{ color: 'var(--accent-color)' }}>Backup</div>
+                <div className="stat-value" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                  <Download size={24} />
+                  <span style={{ fontSize: '1.2rem' }}>Download</span>
                 </div>
               </div>
             </div>

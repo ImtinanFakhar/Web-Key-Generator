@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Key, Copy, Check, ShieldCheck, LayoutDashboard, History, PlusCircle, Trash2, Search, ArrowUpRight } from 'lucide-react';
 
-const _1 = 'TE-AN';
-const _2 = 'ALYSE-';
-const _3 = 'GENERATOR-';
-const _4 = 'FIXED-';
-const _5 = 'SALT-2024';
-const V_BUF = _1 + _2 + _3 + _4 + _5;
+const SALT_AG = 'TE-ANALYSE-GENERATOR-FIXED-SALT-2024';
+const SALT_AVS = 'TE-ANALYSE-VIRTUAL-FIXED-SALT-2024';
+const SALT_BUNDLE = 'TE-ANALYSE-BUNDLE-FIXED-SALT-2024';
 
 function App() {
   const [activeTab, setActiveTab] = useState('generator');
   const [computerId, setComputerId] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('AG');
   const [result, setResult] = useState('');
   const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState(() => {
@@ -27,8 +25,13 @@ function App() {
     if (!computerId.trim()) return;
 
     const cleanId = computerId.trim().toUpperCase();
+    
+    let activeSalt = SALT_AG;
+    if (selectedProduct === 'AVS') activeSalt = SALT_AVS;
+    if (selectedProduct === 'BUNDLE') activeSalt = SALT_BUNDLE;
+
     const encoder = new TextEncoder();
-    const data = encoder.encode(cleanId + V_BUF);
+    const data = encoder.encode(cleanId + activeSalt);
     const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
 
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -43,6 +46,7 @@ function App() {
       id: Date.now(),
       computerId: cleanId,
       key: key,
+      product: selectedProduct,
       date: new Date().toLocaleString('de-DE')
     };
 
@@ -68,8 +72,8 @@ function App() {
     <div className="app-container">
       <div className="glass-panel">
         <div className="title-section">
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-            <ShieldCheck size={48} color="var(--accent-color)" strokeWidth={1.5} />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+            <ShieldCheck size={64} color="var(--accent-color)" strokeWidth={1.5} />
           </div>
           <h1 className="title-gradient">TE KEY GENERATOR</h1>
           <p className="subtitle">Admin License Portal</p>
@@ -102,6 +106,24 @@ function App() {
                   onChange={(e) => setComputerId(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && generateKey()}
                 />
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label>Produkttyp Auswählen</label>
+              <div className="product-selector">
+                <label className={`product-option ${selectedProduct === 'AG' ? 'selected' : ''}`}>
+                  <input type="radio" value="AG" checked={selectedProduct === 'AG'} onChange={(e) => setSelectedProduct(e.target.value)} />
+                  AG Einzel-Lizenz
+                </label>
+                <label className={`product-option ${selectedProduct === 'AVS' ? 'selected' : ''}`}>
+                  <input type="radio" value="AVS" checked={selectedProduct === 'AVS'} onChange={(e) => setSelectedProduct(e.target.value)} />
+                  AVS Einzel-Lizenz
+                </label>
+                <label className={`product-option ${selectedProduct === 'BUNDLE' ? 'selected' : ''}`}>
+                  <input type="radio" value="BUNDLE" checked={selectedProduct === 'BUNDLE'} onChange={(e) => setSelectedProduct(e.target.value)} />
+                  KOMPLETT (AG+AVS)
+                </label>
               </div>
             </div>
 
@@ -153,7 +175,10 @@ function App() {
                 filteredHistory.map(entry => (
                   <div key={entry.id} className="history-item">
                     <div className="history-main">
-                      <div className="history-id">{entry.computerId}</div>
+                      <div className="history-id">
+                        {entry.computerId}
+                        {entry.product && <span style={{ marginLeft: '10px', fontSize: '0.9rem', background: 'rgba(255, 255, 255, 0.1)', color: 'var(--accent-hover)', padding: '4px 10px', borderRadius: '6px' }}>{entry.product}</span>}
+                      </div>
                       <div className="history-date">{entry.date}</div>
                     </div>
                     <div className="history-actions">
